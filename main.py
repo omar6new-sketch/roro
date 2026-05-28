@@ -1,7 +1,4 @@
-)
-        
-        lbl_story = Label(text=story_text, font_size='16sp', size_hint_y=None, text_size=(Window.width - 40, None), halign='right', valign='top')
-        lbl_story.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))
+lbl_story.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))
         scroll.add_widget(lbl_story)
         
         btn_next = Button(text="التالي", size_hint_y=None, height=50, background_color=(0.2, 0.6, 0.4, 1))
@@ -45,7 +42,6 @@ class QuestionScreen(Screen):
         else:
             self.lbl_status.text = "اكتبي حاجة الأول عشان تبعتيها!"
 
-# التطبيق الأساسي
 class RoroApp(App):
     def build(self):
         self.title = "RORO"
