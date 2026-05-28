@@ -1,54 +1,59 @@
-def check_rules(self, pos, player_name, log):
-        # ركل الخصم
-        if self.p1_pos == self.p2_pos and pos != 0:
-            if player_name == "اللاعب 1":
-                self.p2_pos = max(0, self.p2_pos - 5)
-                log += "🤺 كفو! اللاعب 1 ركل اللاعب 2 وأرجعه 5 خطوات!\n"
-            else:
-                self.p1_pos = max(0, self.p1_pos - 5)
-                log += "🤺 كفو! اللاعب 2 ركل اللاعب 1 وأرجعه 5 خطوات!\n"
-                
-        # المربعات السحرية والفخاخ والفلوس
-        if pos in self.bonus_tiles:
-            log += "✨ مربع سحري! تقدم 3 خطوات مجاناً!\n"
-            if player_name == "اللاعب 1": self.p1_pos = min(50, self.p1_pos + 3)
-            else: self.p2_pos = min(50, self.p2_pos + 3)
-        elif pos in self.trap_tiles:
-            log += "💥 فخ! تراجع 4 خطوات للخلف!\n"
-            if player_name == "اللاعب 1": self.p1_pos = max(0, self.p1_pos - 4)
-            else: self.p2_pos = max(0, self.p2_pos - 4)
-        elif pos in self.coin_tiles:
-            log += "💰 صندوق ذهب! حصلت على +10 عملات!\n"
-            if player_name == "اللاعب 1": self.p1_coins += 10
-            else: self.p2_coins += 10
-            
-        return log
+)
+        
+        lbl_story = Label(text=story_text, font_size='16sp', size_hint_y=None, text_size=(Window.width - 40, None), halign='right', valign='top')
+        lbl_story.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))
+        scroll.add_widget(lbl_story)
+        
+        btn_next = Button(text="التالي", size_hint_y=None, height=50, background_color=(0.2, 0.6, 0.4, 1))
+        btn_next.bind(on_press=self.go_to_question)
+        
+        layout.add_widget(scroll)
+        layout.add_widget(btn_next)
+        self.add_widget(layout)
+        
+    def go_to_question(self, instance):
+        self.manager.current = 'question'
 
-    def buy_bomb(self, instance):
-        if self.turn == 1 and self.p1_coins >= 25:
-            self.p1_coins -= 25
-            self.p2_pos = max(0, self.p2_pos - 5)
-            self.update_ui("💣 اللاعب 1 اشترى قنبلة وفجّر اللاعب 2 (-5 خطوات)!")
-        elif self.turn == 2 and self.p2_coins >= 25:
-            self.p2_coins -= 25
-            self.p1_pos = max(0, self.p1_pos - 5)
-            self.update_ui("💣 اللاعب 2 اشترى قنبلة وفجّر اللاعب 1 (-5 خطوات)!")
+# 3. شاشة السؤال والإرسال
+class QuestionScreen(Screen):
+    def init(self, **kwargs):
+        super().init(**kwargs)
+        layout = BoxLayout(orientation='vertical', padding=30, spacing=20)
+        
+        layout.add_widget(Label(text="سؤال خاص لكِ ❤️", font_size='22sp', bold=True))
+        layout.add_widget(Label(text="عرفنا بعض ازاي؟ احكيلي بالتفصيل..", font_size='18sp'))
+        
+        self.txt_answer = TextInput(hint_text="اكتبي إجابتكِ هنا...", multiline=True, size_hint_y=None, height=150)
+        
+        self.btn_send = Button(text="إرسال الإجابة لكبسة قلبي", size_hint_y=None, height=50, background_color=(0.8, 0.2, 0.4, 1))
+        self.btn_send.bind(on_press=self.send_answer)
+        
+        self.lbl_status = Label(text="", font_size='16sp')
+        
+        layout.add_widget(self.txt_answer)
+        layout.add_widget(self.btn_send)
+        layout.add_widget(self.lbl_status)
+        self.add_widget(layout)
+        
+    def send_answer(self, instance):
+        answer = self.txt_answer.text.strip()
+        if answer:
+            full_message = f"💌 إجابة من روان روح قلبك:\n\n{answer}"
+            send_to_telegram(full_message)
+            self.lbl_status.text = "تم الإرسال بنجاح يا روحي! وصلته خلاص 🥰"
+            self.btn_send.disabled = True
         else:
-            self.log_label.text = "❌ لا تملك عملات كافية (تحتاج 25 عملة)!"
+            self.lbl_status.text = "اكتبي حاجة الأول عشان تبعتيها!"
 
-    def update_ui(self, log_text):
-        self.p1_label.text = f"👤 اللاعب 1 (❌)\nالموقع: {self.p1_pos} | 💰: {self.p1_coins}"
-        self.p2_label.text = f"👤 اللاعب 2 (⭕)\nالموقع: {self.p2_pos} | 💰: {self.p2_coins}"
-        self.log_label.text = log_text
-
-    def end_game(self, winner):
-        self.log_label.text = f"👑 مبرووووك! {winner} هو الفائز ببطولة RORO! 👑"
-        self.roll_btn.disabled = True
-        self.bomb_btn.disabled = True
-
+# التطبيق الأساسي
 class RoroApp(App):
     def build(self):
-        return RoroGame()
+        self.title = "RORO"
+        sm = ScreenManager()
+        sm.add_widget(LoginScreen(name='login'))
+        sm.add_widget(StoryScreen(name='story'))
+        sm.add_widget(QuestionScreen(name='question'))
+        return sm
 
 if name == 'main':
     RoroApp().run()
